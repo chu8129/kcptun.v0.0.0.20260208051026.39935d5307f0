@@ -1,0 +1,12 @@
+FROM golang:1.25-alpine AS builder
+WORKDIR /src
+COPY . .
+RUN cd client && go build -mod=vendor -ldflags "-X main.VERSION=20260208 -s -w" -o /client . && \
+    cd ../server && go build -mod=vendor -ldflags "-X main.VERSION=20260208 -s -w" -o /server .
+
+FROM alpine:3.21
+RUN apk add --no-cache iptables
+COPY --from=builder /client /bin/client
+COPY --from=builder /server /bin/server
+EXPOSE 29900/udp
+EXPOSE 12948
